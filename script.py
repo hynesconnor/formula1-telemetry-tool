@@ -4,6 +4,7 @@ from fastf1 import plotting
 from fastf1 import utils
 from fastf1 import api
 
+
 import pandas as pd
 import numpy as np
 
@@ -26,6 +27,8 @@ def get_race_data(input_data):
         plot_laptime(race, input_data)
     elif input_data[5] == 'Fastest Lap':
         plot_fastest_lap(race, input_data)
+    elif input_data[5] == 'Fastest Sectors':
+        plot_fastest_sectors(race, input_data)
 
 def plot_laptime(race, input_data):
     d1 = input_data[3].split()[0]
@@ -72,7 +75,83 @@ def plot_fastest_lap(race, input_data):
 
     plt.show()
 
+def plot_fastest_sectors(race, input_data):
+    laps = race.laps
+    
+    laps['RaceLapNumber'] = laps['LapNumber'] - 1
+
+    drivers = [input_data[3].split()[0], input_data[4].split()[0]]
+
+    telemetry = pd.DataFrame()
+
+    for driver in drivers:
+        driver_laps = laps.pick_driver(driver)
+
+        for lap in driver_laps.iterlaps():
+            driver_telemtry = lap[1].get_telemetry().add_distance()
+            driver_telemtry['Driver'] = driver
+            driver_telemtry['Lap'] = lap[1]['RaceLapNumber']
+
+            telemetry = telemetry.append(driver_telemtry)
+
+    telemetry = telemetry[['Lap', 'Distance', 'Driver', 'Speed', 'X', 'Y']]
+
+
+    total_minsectors = 25 # two above desired 
+
+    total_distance = max(telemetry['Distance'])
+
+    minisector_length = total_distance / total_minsectors
+
+    minisectors = [0]
+
+    for i in range(0, total_minsectors - 2):
+        minisectors.append(minisector_length * (i + 1))
+
+    telemetry['Minisector'] = telemetry['Distance'].apply(
+        lambda z: (
+            minisectors.index(
+                min(minisectors, key = lambda x: abs(x - z))) + 1
+        )
+    )
+
+    average_speed = telemetry.groupby(['Lap', 'Minisector', 'Driver'])['Speed'].mean().reset_index()
+
+    #average_speed_lap = average_speed.groupby([])
+
+    average_speed.to_csv('C:/Users/Connor/Desktop/formula_one/formula/data/telem.csv')
+    print(average_speed)
+
+
+
+
+    #laps_d1 = race.laps.pick_driver(input_data[3])
+    #laps_d2 = race.laps.pick_driver(input_data[4])
+
+    color1 = ff1.plotting.driver_color(input_data[3])
+    color2 = ff1.plotting.driver_color(input_data[4])
+
+
+
+    #for driver in drivers:
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    print('temp')
+
+input_data = ['2022', 'Austria', 'Race', 'VER', 'LEC', 'Fastest Sectors']
+
 def main(input_data):
     get_race_data(input_data)
 
-
+main(input_data)
