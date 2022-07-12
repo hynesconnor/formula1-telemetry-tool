@@ -3,14 +3,27 @@ import os
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import QComboBox, QApplication, QWidget, QVBoxLayout, QLabel, QPushButton
 import script
+import pandas as pd
 
 # CONSTANTS
-year = ['2022', '2021', '2020', '2019', '2018', '2017']
-location = ['Austria']
-session = ['FP1','FP2', 'FP3', 'Sprint Qualifying', 'Sprint', 'Qualifying', 'Race']
-driver_name = ['VER', 'LEC', 'SAI', 'HAM', 'RUS', 'MAG', 'MSC']
-analysis_type = ['Lap Time', 'Fastest Lap']
 CWD = os.getcwd()
+
+events = pd.read_csv(CWD + '/formula/data/events.csv')
+drivers = pd.read_csv(CWD + '/formula/data/drivers.csv')
+
+# list of years
+year = events.columns
+year = year[1:len(year)].to_list()
+year.insert(0, 'Select Year')
+
+
+driver_name = drivers
+
+location = ['Select Location']
+session = ['FP1','FP2', 'FP3', 'Sprint Qualifying', 'Sprint', 'Qualifying', 'Race']
+driver_name = ['Select Driver']
+analysis_type = ['Lap Time', 'Fastest Lap']
+
 
 class MainWindow(QWidget):
 
@@ -65,17 +78,10 @@ class MainWindow(QWidget):
         layout.addWidget(self.drop_analysis)
         layout.addWidget(self.run_button)
 
-
- 
-        #self.drop_year.activated.connect(self.current_text)
-        #self.drop_grand_prix.activated.connect(self.current_text)
-        #self.drop_session.activated.connect(self.current_text)
-        #self.drop_driver1.activated.connect(self.current_text)
-        #self.drop_driver2.activated.connect(self.current_text)
-        #self.drop_analysis.activated.connect(self.current_text)
-
+        #self.drop_year.activated.connect(self.update_lists)
+        self.drop_year.currentTextChanged.connect(self.update_lists)
+        
         self.run_button.clicked.connect(self.button_listen)
-
 
         self.setLayout(layout)
         self.show()
@@ -100,14 +106,21 @@ class MainWindow(QWidget):
 
     def button_listen(self, input_data):
         input_data = self.current_text()
+        print(input_data)
         script.main(input_data)
 
-        print(input_data)
-
-
+    def update_lists(self): # update comboboxes drop_grand_prix, drop_driver1, drop_driver2
+        self.drop_grand_prix.clear()
+        self.drop_driver1.clear()
+        self.drop_driver2.clear()
+        sel_year = self.drop_year.currentText()
+        self.drop_grand_prix.addItems(events[str(sel_year)].dropna().to_list())
+        self.drop_driver1.addItems(drivers[str(sel_year)].dropna().to_list())
+        self.drop_driver2.addItems(drivers[str(sel_year)].dropna().to_list())
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     mw = MainWindow()
     sys.exit(app.exec_())
+

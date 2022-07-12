@@ -24,13 +24,15 @@ def get_race_data(input_data):
 
     if input_data[5] == 'Lap Time':
         plot_laptime(race, input_data)
-    elif input_data == 'Fastest Lap':
+    elif input_data[5] == 'Fastest Lap':
         plot_fastest_lap(race, input_data)
 
-
 def plot_laptime(race, input_data):
-    laps_d1 = race.laps.pick_driver(input_data[3])
-    laps_d2 = race.laps.pick_driver(input_data[4])
+    d1 = input_data[3].split()[0]
+    d2 = input_data[4].split()[0]
+
+    laps_d1 = race.laps.pick_driver(d1)
+    laps_d2 = race.laps.pick_driver(d2)
 
     color1 = ff1.plotting.driver_color(input_data[3])
     color2 = ff1.plotting.driver_color(input_data[4])
@@ -44,19 +46,31 @@ def plot_laptime(race, input_data):
     ax.set_ylabel('Lap Time')
 
     ax.legend()
-    plt.suptitle(f"Lap Time Comparison \n" f"{race.event['EventName']} {race.event.year}")
+    plt.suptitle(f"Lap Time Comparison \n" f"{race.event['EventName']} {race.event.year} {input_data[2]}")
 
     plt.show()
 
 def plot_fastest_lap(race, input_data):
-    laps_d1 = race.laps.pick_driver(input_data[3])
-    laps_d2 = race.laps.pick_driver(input_data[4])
+    fastest_d1 = race.laps.pick_driver(input_data[3]).pick_fastest()
+    fastest_d2 = race.laps.pick_driver(input_data[4]).pick_fastest()
+
+    tel_d1 = fastest_d1.get_car_data().add_distance()
+    tel_d2 = fastest_d2.get_car_data().add_distance()
 
     color1 = ff1.plotting.driver_color(input_data[3])
     color2 = ff1.plotting.driver_color(input_data[4])
 
     fig, ax = plt.subplots()
 
+    ax.plot(tel_d1['Distance'], tel_d1['Speed'], color = color1, label = input_data[3])
+    ax.plot(tel_d2['Distance'], tel_d2['Speed'], color = color2, label = input_data[4])
+
+    ax.set_xlabel('Distance (m)')
+    ax.set_ylabel('Speed (km/h)')
+    ax.legend()
+    plt.suptitle(f"Fastest Lap Comparison \n" f"{race.event['EventName']} {race.event.year} {input_data[2]}")
+
+    plt.show()
 
 def main(input_data):
     get_race_data(input_data)
