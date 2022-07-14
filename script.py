@@ -1,8 +1,10 @@
 # imports
+from xml.sax.xmlreader import AttributesImpl
 import fastf1 as ff1
 from fastf1 import plotting
 from fastf1 import utils
 from fastf1 import api
+import matplotlib
 from matplotlib.colors import LinearSegmentedColormap
 
 
@@ -11,8 +13,10 @@ import numpy as np
 
 from matplotlib import cm
 from matplotlib.collections import LineCollection
+from matplotlib.lines import Line2D
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import figure
+from matplotlib import colors
 
 # enables cache, allows storage of race data locally
 ff1.Cache.enable_cache('formula/cache')
@@ -87,8 +91,11 @@ def plot_laptime(race, input_data):
 #
 #
 def plot_fastest_lap(race, input_data):
-    fastest_d1 = race.laps.pick_driver(input_data[3]).pick_fastest()
-    fastest_d2 = race.laps.pick_driver(input_data[4]).pick_fastest()
+    d1 = input_data[3].split()[0]
+    d2 = input_data[4].split()[0]
+
+    fastest_d1 = race.laps.pick_driver(d1).pick_fastest()
+    fastest_d2 = race.laps.pick_driver(d2).pick_fastest()
 
     tel_d1 = fastest_d1.get_car_data().add_distance()
     tel_d2 = fastest_d2.get_car_data().add_distance()
@@ -132,26 +139,31 @@ def plot_fastest_sectors(race, input_data):
     telemetry = telemetry[['Lap', 'Distance', 'Driver', 'Speed', 'X', 'Y']]
 
     # creating minisectors
-    total_minsectors = 25 # two above desired 
+    total_minisectors = 25 # two above desired 
     total_distance = max(telemetry['Distance'])
-    minisector_length = total_distance / total_minsectors
+    minisector_length = total_distance / total_minisectors
     minisectors = [0]
 
+    '''
     # adds minisectors depending on distance of track
-    for i in range(0, total_minsectors - 1):
+    for i in range(0, total_minisectors - 1):
         minisectors.append(minisector_length * (i + 1))
 
-    # no idea
+ 
+    # no idea STUPID CODE BROKE N!!!
     telemetry['Minisector'] = telemetry['Distance'].apply(
         lambda z: (
             minisectors.index(
                 min(minisectors, key = lambda x: abs(x - z))) + 1
         )
     )
+    '''
+
+    telemetry['Minisector'] = pd.cut(telemetry['Distance'], total_minisectors, labels = False) + 1
     
     average_speed = telemetry.groupby(['Lap', 'Minisector', 'Driver'])['Speed'].mean().reset_index()
     
-    
+    # compare drivers to get best sector
     best_sectors = get_sectors(average_speed)
 
     best_sectors = best_sectors[['Driver', 'Minisector']].rename(columns = {'Driver': 'fastest_driver'})
@@ -161,8 +173,8 @@ def plot_fastest_sectors(race, input_data):
 
     print(telemetry)
 
-    telemetry.loc[telemetry['fastest_driver'] == 'LEC', 'fastest_driver_int'] = 1
-    telemetry.loc[telemetry['fastest_driver'] == 'VER', 'fastest_driver_int'] = 2
+    telemetry.loc[telemetry['fastest_driver'] == input_data[3].split()[0], 'fastest_driver_int'] = 1 # MAKING CHANGES
+    telemetry.loc[telemetry['fastest_driver'] == input_data[4].split()[0], 'fastest_driver_int'] = 2
 
     
     single_lap = telemetry.loc[telemetry['Lap'] == 1]
@@ -172,39 +184,43 @@ def plot_fastest_sectors(race, input_data):
 
     points = np.array([x, y]).T.reshape(-1, 1, 2)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
-    dri = single_lap['fastest_driver_int'].to_numpy().astype(float)
-
+    which_driver = single_lap['fastest_driver_int'].to_numpy().astype(float)
 
     color1 = ff1.plotting.driver_color(input_data[3])
     color2 = ff1.plotting.driver_color(input_data[4])
 
-    cmap = cm.get_cmap('ocean', 2)
-    lc_comp = LineCollection(segments, norm=plt.Normalize(1, cmap.N+1), cmap=cmap)
-    lc_comp.set_array(dri)
+    color1 = matplotlib.colors.to_rgb(color1)
+    color2 = matplotlib.colors.to_rgb(color2)
+
+    colors = [color1, color2]
+
+    cmap = matplotlib.colors.ListedColormap(colors)
+
+    lc_comp = LineCollection(segments, norm = plt.Normalize(1, cmap.N), cmap = cmap) #  norm = plt.Normalize(1, cdict.N+1)
+    lc_comp.set_array(which_driver)
     lc_comp.set_linewidth(2)
 
     plt.rcParams['figure.figsize'] = [12, 5]
-    
 
-    plt.suptitle(f"2022 Russian GP \n bla bla bla") #edit
+    plt.suptitle(f"Average Fastest Sectors \n" f"{race.event['EventName']} {race.event.year} {input_data[2]}") #edit
 
     plt.gca().add_collection(lc_comp)
     plt.axis('equal')
     plt.tick_params(labelleft=False, left=False, labelbottom=False, bottom=False)
 
-    #cbar = plt.colorbar(mappable=lc_comp, boundaries=np.arange(1, 4))
-    #cbar.set_ticks(np.arange(1.5, 9.5))
-    #cbar.set_ticklabels(['LEC', 'VER'])
+    legend_lines = [Line2D([0], [0], color = color1, lw = 4),
+                    Line2D([0], [0], color = color2, lw = 4)]
+
+    plt.legend(legend_lines, [input_data[3], input_data[4]])
+
 
     plt.show()
 
-
-    #laps_d1 = race.laps.pick_driver(input_data[3])
-    #laps_d2 = race.laps.pick_driver(input_data[4])
-
-
-input_data = ['2022', 'Austria', 'Race', 'VER', 'LEC', 'Fastest Sectors']
+# testing
+#input_data = ['2022', 'Austria', 'Race', '44 Lewis Hamilton', '23 Alex Albon', 'Fastest Sectors']
 
 def main(input_data):
     get_race_data(input_data)
+
+
 

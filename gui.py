@@ -22,7 +22,7 @@ driver_name = drivers
 location = ['Select Location']
 session = ['FP1','FP2', 'FP3', 'Sprint Qualifying', 'Sprint', 'Qualifying', 'Race']
 driver_name = ['Select Driver']
-analysis_type = ['Lap Time', 'Fastest Lap']
+analysis_type = ['Lap Time', 'Fastest Lap', 'Fastest Sectors']
 
 
 class MainWindow(QWidget):
