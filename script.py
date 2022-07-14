@@ -10,6 +10,7 @@ from matplotlib.colors import LinearSegmentedColormap
 
 import pandas as pd
 import numpy as np
+import os
 
 from matplotlib import cm
 from matplotlib.collections import LineCollection
@@ -66,6 +67,7 @@ def get_sectors(average_speed):
 #
 #
 def plot_laptime(race, input_data):
+    plt.clf()
     d1 = input_data[3].split()[0]
     d2 = input_data[4].split()[0]
 
@@ -86,11 +88,16 @@ def plot_laptime(race, input_data):
     ax.legend()
     plt.suptitle(f"Lap Time Comparison \n" f"{race.event['EventName']} {race.event.year} {input_data[2]}")
 
-    plt.show()
+
+    img_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
+
+    plt.savefig(img_path)
+
 
 #
 #
 def plot_fastest_lap(race, input_data):
+    plt.clf()
     d1 = input_data[3].split()[0]
     d2 = input_data[4].split()[0]
 
@@ -113,11 +120,16 @@ def plot_fastest_lap(race, input_data):
     ax.legend()
     plt.suptitle(f"Fastest Lap Comparison \n" f"{race.event['EventName']} {race.event.year} {input_data[2]}")
 
-    plt.show()
+
+    img_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
+
+    plt.savefig(img_path)
+
 
 #
 #
 def plot_fastest_sectors(race, input_data):
+    plt.clf()
     laps = race.laps
     drivers = [input_data[3].split()[0], input_data[4].split()[0]]
 
@@ -140,24 +152,7 @@ def plot_fastest_sectors(race, input_data):
 
     # creating minisectors
     total_minisectors = 25 # two above desired 
-    total_distance = max(telemetry['Distance'])
-    minisector_length = total_distance / total_minisectors
-    minisectors = [0]
-
-    '''
-    # adds minisectors depending on distance of track
-    for i in range(0, total_minisectors - 1):
-        minisectors.append(minisector_length * (i + 1))
-
- 
-    # no idea STUPID CODE BROKE N!!!
-    telemetry['Minisector'] = telemetry['Distance'].apply(
-        lambda z: (
-            minisectors.index(
-                min(minisectors, key = lambda x: abs(x - z))) + 1
-        )
-    )
-    '''
+    #total_distance = max(telemetry['Distance'])
 
     telemetry['Minisector'] = pd.cut(telemetry['Distance'], total_minisectors, labels = False) + 1
     
@@ -171,18 +166,16 @@ def plot_fastest_sectors(race, input_data):
     telemetry = telemetry.merge(best_sectors, on = ['Minisector'])
     telemetry = telemetry.sort_values(by = ['Distance'])
 
-    print(telemetry)
 
     telemetry.loc[telemetry['fastest_driver'] == input_data[3].split()[0], 'fastest_driver_int'] = 1 # MAKING CHANGES
     telemetry.loc[telemetry['fastest_driver'] == input_data[4].split()[0], 'fastest_driver_int'] = 2
 
     
     single_lap = telemetry.loc[telemetry['Lap'] == 1]
+    lap_x = np.array(single_lap['X'].values)
+    lap_y = np.array(single_lap['Y'].values)
 
-    x = np.array(single_lap['X'].values)
-    y = np.array(single_lap['Y'].values)
-
-    points = np.array([x, y]).T.reshape(-1, 1, 2)
+    points = np.array([lap_x, lap_y]).T.reshape(-1, 1, 2)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
     which_driver = single_lap['fastest_driver_int'].to_numpy().astype(float)
 
@@ -196,11 +189,12 @@ def plot_fastest_sectors(race, input_data):
 
     cmap = matplotlib.colors.ListedColormap(colors)
 
+
     lc_comp = LineCollection(segments, norm = plt.Normalize(1, cmap.N), cmap = cmap) #  norm = plt.Normalize(1, cdict.N+1)
     lc_comp.set_array(which_driver)
     lc_comp.set_linewidth(2)
 
-    plt.rcParams['figure.figsize'] = [12, 5]
+    plt.rcParams['figure.figsize'] = [6.25, 4.70] #12 5
 
     plt.suptitle(f"Average Fastest Sectors \n" f"{race.event['EventName']} {race.event.year} {input_data[2]}") #edit
 
@@ -213,14 +207,21 @@ def plot_fastest_sectors(race, input_data):
 
     plt.legend(legend_lines, [input_data[3], input_data[4]])
 
+    img_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
 
-    plt.show()
+    plt.savefig(img_path)
+
+
 
 # testing
-#input_data = ['2022', 'Austria', 'Race', '44 Lewis Hamilton', '23 Alex Albon', 'Fastest Sectors']
+#input_data = ['2022', 'Austria', 'Race', '44 Lewis Hamilton', '4 Lando Norris', 'Fastest Sectors']
 
-def main(input_data):
-    get_race_data(input_data)
+#def main(input_data):
+ #   get_race_data(input_data)
+
+
+
+
 
 
 

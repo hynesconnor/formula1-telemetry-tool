@@ -1,7 +1,9 @@
 import sys
 import os
 from PyQt5 import QtGui
-from PyQt5.QtWidgets import QComboBox, QApplication, QWidget, QVBoxLayout, QLabel, QPushButton
+from PyQt5.QtGui import QPixmap
+import threading
+from PyQt5.QtWidgets import QComboBox, QApplication, QWidget, QVBoxLayout, QHBoxLayout,QLabel, QPushButton
 import script
 import pandas as pd
 
@@ -10,6 +12,8 @@ CWD = os.getcwd()
 
 events = pd.read_csv(CWD + '/formula/data/events.csv')
 drivers = pd.read_csv(CWD + '/formula/data/drivers.csv')
+placeholder_path = CWD + '/formula/img/placeholder.png'
+#plot_path = CWD + '/formula/plot/plot.png'
 
 # list of years
 year = events.columns
@@ -33,13 +37,15 @@ class MainWindow(QWidget):
         self.UIComponents()
 
     def initUI(self):
-        self.setFixedSize(560, 320)
+        self.setFixedSize(880, 500)
         self.move(200, 100)
         self.setWindowTitle('Formula 1 Analytics')
         self.setWindowIcon(QtGui.QIcon(CWD + '/formula/img/f1.png'))
 
     def UIComponents(self):
-        layout = QVBoxLayout()
+        options_layout = QVBoxLayout()
+        img_layout = QHBoxLayout()
+        img_layout.addLayout(options_layout)
 
         self.drop_year = QComboBox()
         self.drop_grand_prix = QComboBox()
@@ -64,26 +70,31 @@ class MainWindow(QWidget):
         self.drop_driver2.addItems(driver_name)
         self.drop_analysis.addItems(analysis_type)
 
-        layout.addWidget(label_year)
-        layout.addWidget(self.drop_year)
-        layout.addWidget(label_prix)
-        layout.addWidget(self.drop_grand_prix)
-        layout.addWidget(label_session)
-        layout.addWidget(self.drop_session)
-        layout.addWidget(label_d1)
-        layout.addWidget(self.drop_driver1)
-        layout.addWidget(label_d2)
-        layout.addWidget(self.drop_driver2)
-        layout.addWidget(label_analysis)
-        layout.addWidget(self.drop_analysis)
-        layout.addWidget(self.run_button)
+        options_layout.addWidget(label_year)
+
+        options_layout.addWidget(self.drop_year)
+        options_layout.addWidget(label_prix)
+        options_layout.addWidget(self.drop_grand_prix)
+        options_layout.addWidget(label_session)
+        options_layout.addWidget(self.drop_session)
+        options_layout.addWidget(label_d1)
+        options_layout.addWidget(self.drop_driver1)
+        options_layout.addWidget(label_d2)
+        options_layout.addWidget(self.drop_driver2)
+        options_layout.addWidget(label_analysis)
+        options_layout.addWidget(self.drop_analysis)
+        options_layout.addWidget(self.run_button)
 
         #self.drop_year.activated.connect(self.update_lists)
         self.drop_year.currentTextChanged.connect(self.update_lists)
         
-        self.run_button.clicked.connect(self.button_listen)
+        self.run_button.clicked.connect(self.thread)
 
-        self.setLayout(layout)
+        self.img_plot = QLabel()
+        self.img_plot.setPixmap(QPixmap(placeholder_path).scaledToWidth(625))
+        img_layout.addWidget(self.img_plot)
+
+        self.setLayout(img_layout)
         self.show()
 
         
@@ -104,10 +115,22 @@ class MainWindow(QWidget):
         input_data.append(text)
         return input_data
 
-    def button_listen(self, input_data):
+    def display_plot(self, plot_path):
+        self.img_plot.setPixmap(QPixmap(plot_path).scaledToWidth(625))
+  
+    # testing thread, repurpose for loading indicator
+    def thread(self):
+        thread_script = threading.Thread(target = self.button_listen)
+        thread_script.start()
+
+    # listens for button press, runs main script, 
+    def button_listen(self):
         input_data = self.current_text()
         print(input_data)
-        script.main(input_data)
+        script.get_race_data(input_data)
+        plot_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
+        self.display_plot(plot_path)
+        
 
     def update_lists(self): # update comboboxes drop_grand_prix, drop_driver1, drop_driver2
         self.drop_grand_prix.clear()
@@ -117,6 +140,7 @@ class MainWindow(QWidget):
         self.drop_grand_prix.addItems(events[str(sel_year)].dropna().to_list())
         self.drop_driver1.addItems(drivers[str(sel_year)].dropna().to_list())
         self.drop_driver2.addItems(drivers[str(sel_year)].dropna().to_list())
+
 
 
 if __name__ == '__main__':
