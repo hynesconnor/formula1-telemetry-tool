@@ -1,9 +1,12 @@
 import sys
 import os
+from random import randint
+from PyQt5.QtCore import QTimer
 from PyQt5 import QtGui
 from PyQt5.QtGui import QPixmap
 import threading
-from PyQt5.QtWidgets import QComboBox, QApplication, QWidget, QVBoxLayout, QHBoxLayout,QLabel, QPushButton
+from PyQt5.QtWidgets import QComboBox, QApplication, QWidget, QVBoxLayout, QHBoxLayout,QLabel, QPushButton, QProgressBar
+from requests import options
 import script
 import pandas as pd
 
@@ -28,6 +31,35 @@ session = ['FP1','FP2', 'FP3', 'Sprint Qualifying', 'Sprint', 'Qualifying', 'Rac
 driver_name = ['Select Driver']
 analysis_type = ['Lap Time', 'Fastest Lap', 'Fastest Sectors']
 
+StyleSheet = '''
+#RedProgressBar {
+    min-height: 12px;
+    max-height: 12px;
+    border-radius: 2px;
+    border: .5px solid #808080;;
+}
+#RedProgressBar::chunk {
+    border-radius: 2px;
+    background-color: #DC0000;
+    opacity: 1;
+}
+'''
+
+class ProgressBar(QProgressBar):
+    def __init__(self, *args, **kwargs):
+        super(ProgressBar, self).__init__(*args, **kwargs)
+        self.setValue(0)
+        if self.minimum() != self.maximum():
+            self.timer = QTimer(self, timeout=self.onTimeout)
+            self.timer.start(randint(1, 3) * 1000)
+
+    def onTimeout(self):
+        if self.value() >= 100:
+            self.timer.stop()
+            self.timer.deleteLater()
+            del self.timer
+            return
+        self.setValue(self.value() + 1)
 
 class MainWindow(QWidget):
 
@@ -54,14 +86,17 @@ class MainWindow(QWidget):
         self.drop_driver2 = QComboBox()
         self.drop_analysis = QComboBox()
 
-        label_year = QLabel('Year:')
-        label_prix = QLabel('Grand Prix Location:')
-        label_session = QLabel('Session:')
-        label_d1 = QLabel('Driver 1:')
-        label_d2 = QLabel('Driver 2:')
-        label_analysis = QLabel('Analysis Type:')
+        label_year = QLabel('<span style="font-size:8.5pt; font-weight: 500"> Year: </span>')
+        label_prix = QLabel('<span style="font-size:8.5pt; font-weight: 500"> Grand Prix Location: </span>') 
+        label_session = QLabel('<span style="font-size:8.5pt; font-weight: 500"> Session: </span>')
+        label_d1 = QLabel('<span style="font-size:8.5pt; font-weight: 500"> Driver 1: </span>')
+        label_d2 = QLabel('<span style="font-size:8.5pt; font-weight: 500"> Driver 2: </span>')
+        label_analysis = QLabel('<span style="font-size:8.5pt; font-weight: 500"> Analysis Type: </span>')
 
         self.run_button = QPushButton('Run Analysis')
+
+        self.pbar = ProgressBar(self, minimum=0, maximum=0, textVisible=False,
+                                objectName="RedProgressBar")
 
         self.drop_year.addItems(year)
         self.drop_grand_prix.addItems(location)
@@ -83,20 +118,34 @@ class MainWindow(QWidget):
         options_layout.addWidget(self.drop_driver2)
         options_layout.addWidget(label_analysis)
         options_layout.addWidget(self.drop_analysis)
+        options_layout.addWidget(self.pbar)
+        self.pbar.hide()
         options_layout.addWidget(self.run_button)
+        options_layout.addStretch()
 
         #self.drop_year.activated.connect(self.update_lists)
         self.drop_year.currentTextChanged.connect(self.update_lists)
         
         self.run_button.clicked.connect(self.thread)
 
+        # plot section
         self.img_plot = QLabel()
         self.img_plot.setPixmap(QPixmap(placeholder_path).scaledToWidth(625))
         img_layout.addWidget(self.img_plot)
 
-        self.setLayout(img_layout)
-        self.show()
+        # progress bar
 
+        #options_layout.addWidget(self.pbar)
+        #self.pbar.hide()
+
+
+        self.setLayout(img_layout)
+        #self.show()
+    
+    def add_progress_bar(self):
+        self.options_layout.addWidget(  
+        ProgressBar(self, minimum=0, maximum=0, textVisible=False,
+                    objectName="RedProgressBar"))
         
     # listens for change in inputs, responds to each change with updated list of desired inputs.
     def current_text(self):
@@ -126,10 +175,13 @@ class MainWindow(QWidget):
     # listens for button press, runs main script, 
     def button_listen(self):
         input_data = self.current_text()
+        self.pbar.show()
         print(input_data)
         script.get_race_data(input_data)
         plot_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
         self.display_plot(plot_path)
+        self.pbar.hide()
+        
         
 
     def update_lists(self): # update comboboxes drop_grand_prix, drop_driver1, drop_driver2
@@ -145,6 +197,8 @@ class MainWindow(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    app.setStyleSheet(StyleSheet)
     mw = MainWindow()
+    mw.show()
     sys.exit(app.exec_())
 

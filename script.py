@@ -1,23 +1,22 @@
 # imports
-from xml.sax.xmlreader import AttributesImpl
 import fastf1 as ff1
 from fastf1 import plotting
 from fastf1 import utils
 from fastf1 import api
 import matplotlib
-from matplotlib.colors import LinearSegmentedColormap
+
 
 
 import pandas as pd
 import numpy as np
 import os
 
-from matplotlib import cm
+#from matplotlib import cm
 from matplotlib.collections import LineCollection
 from matplotlib.lines import Line2D
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import figure
-from matplotlib import colors
+#from matplotlib import colors
 
 # enables cache, allows storage of race data locally
 ff1.Cache.enable_cache('formula/cache')
@@ -210,18 +209,3 @@ def plot_fastest_sectors(race, input_data):
     img_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
 
     plt.savefig(img_path)
-
-
-
-# testing
-#input_data = ['2022', 'Austria', 'Race', '44 Lewis Hamilton', '4 Lando Norris', 'Fastest Sectors']
-
-#def main(input_data):
- #   get_race_data(input_data)
-
-
-
-
-
-
-
