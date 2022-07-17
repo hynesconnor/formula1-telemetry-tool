@@ -36,6 +36,8 @@ def get_race_data(input_data):
         plot_fastest_lap(race, input_data)
     elif input_data[5] == 'Fastest Sectors':
         plot_fastest_sectors(race, input_data)
+    elif input_data[5] == 'Full Telemetry':
+        plot_full_telemetry(race, input_data)
 
 #
 #
@@ -209,3 +211,36 @@ def plot_fastest_sectors(race, input_data):
     img_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
 
     plt.savefig(img_path)
+
+
+def plot_full_telemetry(race, input_data): # speed, throttle, brake, rpm, gear, drs 
+    plt.clf()
+    d1 = input_data[3].split()[0]
+    d2 = input_data[4].split()[0]
+
+    fastest_d1 = race.laps.pick_driver(d1).pick_fastest()
+    fastest_d2 = race.laps.pick_driver(d2).pick_fastest()
+
+    tel_d1 = fastest_d1.get_car_data().add_distance()
+    tel_d2 = fastest_d2.get_car_data().add_distance()
+
+    fig, ax = plt.subplots(6)
+
+    ax[0].plot(range(10), 'r')
+    ax[1].plot(range(10), 'g')
+    ax[0].plot(range(10), 'r')
+    ax[0].plot(range(10), 'r')
+    ax[0].plot(range(10), 'r')
+    ax[0].plot(range(10), 'r')
+
+    plt.show()
+
+
+
+    
+
+
+    print('complete')
+
+input_data = ['2022', 'Austria', 'Race', 'VER', 'HAM', 'Full Telemetry']
+get_race_data(input_data)

@@ -29,7 +29,7 @@ driver_name = drivers
 location = ['Select Location']
 session = ['FP1','FP2', 'FP3', 'Sprint Qualifying', 'Sprint', 'Qualifying', 'Race']
 driver_name = ['Select Driver']
-analysis_type = ['Lap Time', 'Fastest Lap', 'Fastest Sectors']
+analysis_type = ['Lap Time', 'Fastest Lap', 'Fastest Sectors', 'Full Telemetry']
 
 StyleSheet = '''
 #RedProgressBar {
@@ -71,7 +71,7 @@ class MainWindow(QWidget):
     def initUI(self):
         self.setFixedSize(880, 500)
         self.move(200, 100)
-        self.setWindowTitle('Formula 1 Analytics')
+        self.setWindowTitle('Formula 1 Telemetry Analytics')
         self.setWindowIcon(QtGui.QIcon(CWD + '/formula/img/f1.png'))
 
     def UIComponents(self):
@@ -94,6 +94,7 @@ class MainWindow(QWidget):
         label_analysis = QLabel('<span style="font-size:8.5pt; font-weight: 500"> Analysis Type: </span>')
 
         self.run_button = QPushButton('Run Analysis')
+        self.save_button = QPushButton('Save Analysis as PNG')
 
         self.pbar = ProgressBar(self, minimum=0, maximum=0, textVisible=False,
                                 objectName="RedProgressBar")
@@ -121,26 +122,25 @@ class MainWindow(QWidget):
         options_layout.addWidget(self.pbar)
         self.pbar.hide()
         options_layout.addWidget(self.run_button)
+
+        options_layout.addWidget(self.save_button)
+        self.save_button.hide()
+
         options_layout.addStretch()
 
         #self.drop_year.activated.connect(self.update_lists)
         self.drop_year.currentTextChanged.connect(self.update_lists)
         
         self.run_button.clicked.connect(self.thread)
+        self.save_button.clicked.connect(self.save_plot)
+
 
         # plot section
         self.img_plot = QLabel()
         self.img_plot.setPixmap(QPixmap(placeholder_path).scaledToWidth(625))
         img_layout.addWidget(self.img_plot)
 
-        # progress bar
-
-        #options_layout.addWidget(self.pbar)
-        #self.pbar.hide()
-
-
         self.setLayout(img_layout)
-        #self.show()
     
     def add_progress_bar(self):
         self.options_layout.addWidget(  
@@ -166,6 +166,9 @@ class MainWindow(QWidget):
 
     def display_plot(self, plot_path):
         self.img_plot.setPixmap(QPixmap(plot_path).scaledToWidth(625))
+
+    def save_plot(self):
+        print(self.plot_path)
   
     # testing thread, repurpose for loading indicator
     def thread(self):
@@ -175,23 +178,30 @@ class MainWindow(QWidget):
     # listens for button press, runs main script, 
     def button_listen(self):
         input_data = self.current_text()
-        self.pbar.show()
-        print(input_data)
-        script.get_race_data(input_data)
-        plot_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
-        self.display_plot(plot_path)
-        self.pbar.hide()
+        if input_data[0] == 'Select Year':
+            print('bad') # work on fixing this, not pressing but better QOL
+
+        else:
+            self.save_button.hide()
+            self.pbar.show()
+
+            script.get_race_data(input_data)
+            self.plot_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
+            self.display_plot(self.plot_path)
+            self.pbar.hide()
+            self.save_button.show()
         
         
 
     def update_lists(self): # update comboboxes drop_grand_prix, drop_driver1, drop_driver2
-        self.drop_grand_prix.clear()
-        self.drop_driver1.clear()
-        self.drop_driver2.clear()
         sel_year = self.drop_year.currentText()
-        self.drop_grand_prix.addItems(events[str(sel_year)].dropna().to_list())
-        self.drop_driver1.addItems(drivers[str(sel_year)].dropna().to_list())
-        self.drop_driver2.addItems(drivers[str(sel_year)].dropna().to_list())
+        if sel_year != 'Select Year':
+            self.drop_grand_prix.clear()
+            self.drop_driver1.clear()
+            self.drop_driver2.clear()
+            self.drop_grand_prix.addItems(events[str(sel_year)].dropna().to_list())
+            self.drop_driver1.addItems(drivers[str(sel_year)].dropna().to_list())
+            self.drop_driver2.addItems(drivers[str(sel_year)].dropna().to_list())
 
 
 
