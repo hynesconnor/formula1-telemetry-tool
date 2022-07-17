@@ -1,33 +1,30 @@
 import sys
 import os
+import shutil
 from random import randint
 from PyQt5.QtCore import QTimer
 from PyQt5 import QtGui
 from PyQt5.QtGui import QPixmap
 import threading
 from PyQt5.QtWidgets import QComboBox, QApplication, QWidget, QVBoxLayout, QHBoxLayout,QLabel, QPushButton, QProgressBar
-from requests import options
 import script
 import pandas as pd
 
 # CONSTANTS
 CWD = os.getcwd()
-
 events = pd.read_csv(CWD + '/formula/data/events.csv')
 drivers = pd.read_csv(CWD + '/formula/data/drivers.csv')
 placeholder_path = CWD + '/formula/img/placeholder.png'
-#plot_path = CWD + '/formula/plot/plot.png'
+
 
 # list of years
 year = events.columns
 year = year[1:len(year)].to_list()
 year.insert(0, 'Select Year')
 
-
 driver_name = drivers
-
 location = ['Select Location']
-session = ['FP1','FP2', 'FP3', 'Sprint Qualifying', 'Sprint', 'Qualifying', 'Race']
+session = ['FP1','FP2', 'FP3', 'Qualifying', 'Race'] # 'Sprint Qualifying', 'Sprint'
 driver_name = ['Select Driver']
 analysis_type = ['Lap Time', 'Fastest Lap', 'Fastest Sectors', 'Full Telemetry']
 
@@ -94,7 +91,7 @@ class MainWindow(QWidget):
         label_analysis = QLabel('<span style="font-size:8.5pt; font-weight: 500"> Analysis Type: </span>')
 
         self.run_button = QPushButton('Run Analysis')
-        self.save_button = QPushButton('Save Analysis as PNG')
+        self.save_button = QPushButton('Save Analysis to Desktop')
 
         self.pbar = ProgressBar(self, minimum=0, maximum=0, textVisible=False,
                                 objectName="RedProgressBar")
@@ -132,8 +129,8 @@ class MainWindow(QWidget):
         self.drop_year.currentTextChanged.connect(self.update_lists)
         
         self.run_button.clicked.connect(self.thread)
-        self.save_button.clicked.connect(self.save_plot)
 
+        self.save_button.clicked.connect(self.save_plot)
 
         # plot section
         self.img_plot = QLabel()
@@ -168,8 +165,9 @@ class MainWindow(QWidget):
         self.img_plot.setPixmap(QPixmap(plot_path).scaledToWidth(625))
 
     def save_plot(self):
-        print(self.plot_path)
-  
+        desktop_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
+        shutil.copy(self.plot_path, desktop_path)
+
     # testing thread, repurpose for loading indicator
     def thread(self):
         thread_script = threading.Thread(target = self.button_listen)
@@ -191,8 +189,6 @@ class MainWindow(QWidget):
             self.pbar.hide()
             self.save_button.show()
         
-        
-
     def update_lists(self): # update comboboxes drop_grand_prix, drop_driver1, drop_driver2
         sel_year = self.drop_year.currentText()
         if sel_year != 'Select Year':
@@ -203,12 +199,9 @@ class MainWindow(QWidget):
             self.drop_driver1.addItems(drivers[str(sel_year)].dropna().to_list())
             self.drop_driver2.addItems(drivers[str(sel_year)].dropna().to_list())
 
-
-
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyleSheet(StyleSheet)
     mw = MainWindow()
     mw.show()
     sys.exit(app.exec_())
-

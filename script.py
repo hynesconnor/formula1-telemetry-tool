@@ -203,8 +203,8 @@ def plot_fastest_sectors(race, input_data):
     plt.axis('equal')
     plt.tick_params(labelleft=False, left=False, labelbottom=False, bottom=False)
 
-    legend_lines = [Line2D([0], [0], color = color1, lw = 4),
-                    Line2D([0], [0], color = color2, lw = 4)]
+    legend_lines = [Line2D([0], [0], color = color1, lw = 1),
+                    Line2D([0], [0], color = color2, lw = 1)]
 
     plt.legend(legend_lines, [input_data[3], input_data[4]])
 
@@ -222,25 +222,40 @@ def plot_full_telemetry(race, input_data): # speed, throttle, brake, rpm, gear, 
     fastest_d2 = race.laps.pick_driver(d2).pick_fastest()
 
     tel_d1 = fastest_d1.get_car_data().add_distance()
+    tel_d1['Brake'] = tel_d1['Brake'].astype(int)
     tel_d2 = fastest_d2.get_car_data().add_distance()
+    tel_d2['Brake'] = tel_d2['Brake'].astype(int)
+
+    telem_data_combined = [tel_d1, tel_d2]
+    colors = [ff1.plotting.driver_color(input_data[3]), ff1.plotting.driver_color(input_data[4])]
+    drivers = [input_data[3], input_data[4]]
+
+
 
     fig, ax = plt.subplots(6)
 
-    ax[0].plot(range(10), 'r')
-    ax[1].plot(range(10), 'g')
-    ax[0].plot(range(10), 'r')
-    ax[0].plot(range(10), 'r')
-    ax[0].plot(range(10), 'r')
-    ax[0].plot(range(10), 'r')
+    for telem, driver, color in zip(telem_data_combined, drivers, colors):
+        ax[0].plot(telem['Distance'], telem['Speed'], color = color, label = driver)
+        ax[1].plot(telem['Distance'], telem['Throttle'], color = color, label = driver)
+        ax[2].plot(telem['Distance'], telem['Brake'], color = color, label = driver) # might have to convert to binary 
+        ax[3].plot(telem['Distance'], telem['RPM'], color = color, label = driver)
+        ax[4].plot(telem['Distance'], telem['nGear'], color = color, label = driver)
+        ax[5].plot(telem['Distance'], telem['DRS'], color = color, label = driver)
 
-    plt.show()
+    plt.suptitle(f"Fastest Lap Telemetry - {input_data[3]} vs {input_data[4]} \n {race.event['EventName']} {race.event.year} {input_data[2]}")
+
+    legend_lines = [Line2D([0], [0], color = colors[0], lw = 1),
+        Line2D([0], [0], color = colors[1], lw = 1)]
+
+    plt.legend(legend_lines, [input_data[3], input_data[4]])
+
+
+    img_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
+
+    plt.savefig(img_path)
 
 
 
-    
 
-
-    print('complete')
-
-input_data = ['2022', 'Austria', 'Race', 'VER', 'HAM', 'Full Telemetry']
-get_race_data(input_data)
+#input_data = ['2022', 'Austria', 'Race', 'VER', 'HAM', 'Full Telemetry']
+#get_race_data(input_data)
