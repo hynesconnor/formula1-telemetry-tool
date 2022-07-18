@@ -1,21 +1,21 @@
-import sys
 import os
+import sys
 import shutil
-from random import randint
-from PyQt5.QtCore import QTimer
-from PyQt5 import QtGui
-from PyQt5.QtGui import QPixmap
 import threading
-from PyQt5.QtWidgets import QComboBox, QApplication, QWidget, QVBoxLayout, QHBoxLayout,QLabel, QPushButton, QProgressBar
-import script
 import pandas as pd
+from random import randint
+from PyQt5 import QtGui
+from PyQt5.QtCore import QTimer
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QComboBox, QApplication, QWidget, QVBoxLayout, QHBoxLayout,QLabel, QPushButton, QProgressBar, QMessageBox
+
+import script
 
 # CONSTANTS
 CWD = os.getcwd()
 events = pd.read_csv(CWD + '/formula/data/events.csv')
 drivers = pd.read_csv(CWD + '/formula/data/drivers.csv')
 placeholder_path = CWD + '/formula/img/placeholder.png'
-
 
 # list of years
 year = events.columns
@@ -40,6 +40,9 @@ StyleSheet = '''
     background-color: #DC0000;
     opacity: 1;
 }
+.warning-text {
+    color:#DC0000
+}
 '''
 
 class ProgressBar(QProgressBar):
@@ -59,14 +62,13 @@ class ProgressBar(QProgressBar):
         self.setValue(self.value() + 1)
 
 class MainWindow(QWidget):
-
     def __init__(self):
         super().__init__()
         self.initUI()
         self.UIComponents()
 
     def initUI(self):
-        self.setFixedSize(880, 500)
+        self.resize(880, 500)
         self.move(200, 100)
         self.setWindowTitle('Formula 1 Telemetry Analytics')
         self.setWindowIcon(QtGui.QIcon(CWD + '/formula/img/f1.png'))
@@ -83,6 +85,11 @@ class MainWindow(QWidget):
         self.drop_driver2 = QComboBox()
         self.drop_analysis = QComboBox()
 
+        self.warning_box = QMessageBox(self)
+        self.warning_box.setWindowTitle('Error!')
+        self.warning_box.setText('Select a valid race year.')
+        self.warning_box.setDefaultButton(QMessageBox.Ok)
+
         label_year = QLabel('<span style="font-size:8.5pt; font-weight: 500"> Year: </span>')
         label_prix = QLabel('<span style="font-size:8.5pt; font-weight: 500"> Grand Prix Location: </span>') 
         label_session = QLabel('<span style="font-size:8.5pt; font-weight: 500"> Session: </span>')
@@ -91,7 +98,7 @@ class MainWindow(QWidget):
         label_analysis = QLabel('<span style="font-size:8.5pt; font-weight: 500"> Analysis Type: </span>')
 
         self.run_button = QPushButton('Run Analysis')
-        self.save_button = QPushButton('Save Analysis to Desktop')
+        self.save_button = QPushButton('Save Plot to Desktop')
 
         self.pbar = ProgressBar(self, minimum=0, maximum=0, textVisible=False,
                                 objectName="RedProgressBar")
@@ -125,10 +132,9 @@ class MainWindow(QWidget):
 
         options_layout.addStretch()
 
-        #self.drop_year.activated.connect(self.update_lists)
         self.drop_year.currentTextChanged.connect(self.update_lists)
         
-        self.run_button.clicked.connect(self.thread)
+        self.run_button.clicked.connect(self.thread_script)
 
         self.save_button.clicked.connect(self.save_plot)
 
@@ -169,7 +175,7 @@ class MainWindow(QWidget):
         shutil.copy(self.plot_path, desktop_path)
 
     # testing thread, repurpose for loading indicator
-    def thread(self):
+    def thread_script(self):
         thread_script = threading.Thread(target = self.button_listen)
         thread_script.start()
 
@@ -177,16 +183,17 @@ class MainWindow(QWidget):
     def button_listen(self):
         input_data = self.current_text()
         if input_data[0] == 'Select Year':
-            print('bad') # work on fixing this, not pressing but better QOL
-
+            self.run_button.setText('Run Analysis (Select Valid Year)')
+            
         else:
+            self.run_button.setText('Running . . .')
             self.save_button.hide()
             self.pbar.show()
-
             script.get_race_data(input_data)
             self.plot_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
             self.display_plot(self.plot_path)
             self.pbar.hide()
+            self.run_button.setText('Run New Analysis')
             self.save_button.show()
         
     def update_lists(self): # update comboboxes drop_grand_prix, drop_driver1, drop_driver2

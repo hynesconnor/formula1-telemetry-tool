@@ -5,8 +5,6 @@ from fastf1 import utils
 from fastf1 import api
 import matplotlib
 
-
-
 import pandas as pd
 import numpy as np
 import os
@@ -15,7 +13,7 @@ import os
 from matplotlib.collections import LineCollection
 from matplotlib.lines import Line2D
 from matplotlib import pyplot as plt
-from matplotlib.pyplot import figure
+from matplotlib.pyplot import figure, ylabel
 #from matplotlib import colors
 
 # enables cache, allows storage of race data locally
@@ -92,7 +90,7 @@ def plot_laptime(race, input_data):
 
     img_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
 
-    plt.savefig(img_path)
+    plt.savefig(img_path, dpi = 700)
 
 
 #
@@ -124,7 +122,7 @@ def plot_fastest_lap(race, input_data):
 
     img_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
 
-    plt.savefig(img_path)
+    plt.savefig(img_path, dpi = 700)
 
 
 #
@@ -195,7 +193,7 @@ def plot_fastest_sectors(race, input_data):
     lc_comp.set_array(which_driver)
     lc_comp.set_linewidth(2)
 
-    plt.rcParams['figure.figsize'] = [6.25, 4.70] #12 5
+    plt.rcParams['figure.figsize'] = [6.25, 4.70]
 
     plt.suptitle(f"Average Fastest Sectors \n" f"{race.event['EventName']} {race.event.year} {input_data[2]}") #edit
 
@@ -210,7 +208,7 @@ def plot_fastest_sectors(race, input_data):
 
     img_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
 
-    plt.savefig(img_path)
+    plt.savefig(img_path, dpi = 700)
 
 
 def plot_full_telemetry(race, input_data): # speed, throttle, brake, rpm, gear, drs 
@@ -228,19 +226,24 @@ def plot_full_telemetry(race, input_data): # speed, throttle, brake, rpm, gear, 
 
     telem_data_combined = [tel_d1, tel_d2]
     colors = [ff1.plotting.driver_color(input_data[3]), ff1.plotting.driver_color(input_data[4])]
-    drivers = [input_data[3], input_data[4]]
-
-
 
     fig, ax = plt.subplots(6)
 
-    for telem, driver, color in zip(telem_data_combined, drivers, colors):
-        ax[0].plot(telem['Distance'], telem['Speed'], color = color, label = driver)
-        ax[1].plot(telem['Distance'], telem['Throttle'], color = color, label = driver)
-        ax[2].plot(telem['Distance'], telem['Brake'], color = color, label = driver) # might have to convert to binary 
-        ax[3].plot(telem['Distance'], telem['RPM'], color = color, label = driver)
-        ax[4].plot(telem['Distance'], telem['nGear'], color = color, label = driver)
-        ax[5].plot(telem['Distance'], telem['DRS'], color = color, label = driver)
+    for telem, color in zip(telem_data_combined, colors):
+        ax[0].plot(telem['Distance'], telem['Speed'], color = color, linewidth = .75)
+        ax[1].plot(telem['Distance'], telem['Throttle'], color = color, linewidth = .75)
+        ax[2].plot(telem['Distance'], telem['Brake'], color = color, linewidth = .75) # might have to convert to binary 
+        ax[3].plot(telem['Distance'], telem['RPM'], color = color, linewidth = .75)
+        ax[4].plot(telem['Distance'], telem['nGear'], color = color, linewidth = .75)
+        ax[5].plot(telem['Distance'], telem['DRS'], color = color, linewidth = .75)
+
+
+    ax[0].set(ylabel = 'Speed')
+    ax[1].set(ylabel = 'Throttle')
+    ax[2].set(ylabel = 'Brake')
+    ax[3].set(ylabel = 'RPM')
+    ax[4].set(ylabel = 'Gear')
+    ax[5].set(ylabel = 'DRS')
 
     plt.suptitle(f"Fastest Lap Telemetry - {input_data[3]} vs {input_data[4]} \n {race.event['EventName']} {race.event.year} {input_data[2]}")
 
@@ -249,13 +252,6 @@ def plot_full_telemetry(race, input_data): # speed, throttle, brake, rpm, gear, 
 
     plt.legend(legend_lines, [input_data[3], input_data[4]])
 
-
     img_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
 
-    plt.savefig(img_path)
-
-
-
-
-#input_data = ['2022', 'Austria', 'Race', 'VER', 'HAM', 'Full Telemetry']
-#get_race_data(input_data)
+    plt.savefig(img_path, dpi = 700)
