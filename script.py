@@ -90,7 +90,7 @@ def plot_laptime(race, input_data):
 
     img_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
 
-    plt.savefig(img_path, dpi = 700)
+    plt.savefig(img_path, dpi = 200)
 
 
 #
@@ -208,7 +208,7 @@ def plot_fastest_sectors(race, input_data):
 
     img_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
 
-    plt.savefig(img_path, dpi = 700)
+    plt.savefig(img_path, dpi = 200)
 
 
 def plot_full_telemetry(race, input_data): # speed, throttle, brake, rpm, gear, drs 
@@ -254,4 +254,4 @@ def plot_full_telemetry(race, input_data): # speed, throttle, brake, rpm, gear, 
 
     img_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
 
-    plt.savefig(img_path, dpi = 700)
+    plt.savefig(img_path, dpi = 200)
