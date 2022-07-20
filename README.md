@@ -23,10 +23,13 @@ Query every race and each driver for the 2018-2022 racing seasons. Built leverag
 
 # Examples
 1) A fastest lap comparison of the 2022 Austrian Grand Prix Race between Esteban Ocon and Carlos Sainz:
+
 ![](/mkdwn/fastestlap.png)
 
 2) A fastest sectors comparison of the 2022 Bahrain Gran Prix Race between Lewis Hamilton and Lando Norris:
+
 ![](/mkdwn/sectors3.png)
 
 3) A full telemetry comparison of the 2022 Austrian Grand Prix Race between Charles Leclerc and Lewis Hamilton:
+
 ![](/mkdwn/fulltelem.png)
