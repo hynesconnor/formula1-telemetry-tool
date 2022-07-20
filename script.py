@@ -13,7 +13,7 @@ from matplotlib import pyplot as plt
 from matplotlib.collections import LineCollection
 
 # enables cache, allows storage of race data locally
-ff1.Cache.enable_cache('formula/cache')
+ff1.Cache.enable_cache('/cache')
 
 # patches matplotlib for time delta support
 ff1.plotting.setup_mpl(mpl_timedelta_support = True, color_scheme = 'fastf1')
@@ -81,7 +81,7 @@ def plot_laptime(race, input_data):
     ax.legend()
     plt.suptitle(f"Lap Time Comparison \n" f"{race.event['EventName']} {race.event.year} {input_data[2]}")
 
-    img_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
+    img_path = os.getcwd() + (f'/plot/{input_data[5]}.png')
     plt.savefig(img_path, dpi = 200)
 
 
@@ -109,7 +109,7 @@ def plot_fastest_lap(race, input_data):
     ax.legend()
     plt.suptitle(f"Fastest Lap Comparison \n" f"{race.event['EventName']} {race.event.year} {input_data[2]}")
 
-    img_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
+    img_path = os.getcwd() + (f'/plot/{input_data[5]}.png')
     plt.savefig(img_path, dpi = 700)
 
 
@@ -189,7 +189,7 @@ def plot_fastest_sectors(race, input_data):
 
     plt.legend(legend_lines, [input_data[3], input_data[4]])
 
-    img_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
+    img_path = os.getcwd() + (f'/plot/{input_data[5]}.png')
     plt.savefig(img_path, dpi = 200)
 
 # plots a speed, throttle, brake, rpm, gear, and drs comparison for both drivers
@@ -233,5 +233,5 @@ def plot_full_telemetry(race, input_data): # speed, throttle, brake, rpm, gear, 
 
     plt.legend(legend_lines, [input_data[3], input_data[4]])
 
-    img_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
+    img_path = os.getcwd() + (f'/plot/{input_data[5]}.png')
     plt.savefig(img_path, dpi = 200)

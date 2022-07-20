@@ -9,14 +9,21 @@ from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QComboBox, QApplication, QWidget, QVBoxLayout, QHBoxLayout,QLabel, QPushButton, QProgressBar, QMessageBox
 
+# create directories
+CWD = os.getcwd()
+if not os.path.exists(CWD + '/cache'):
+    cur_dir = CWD + '/'
+    main_dirs = ['cache', 'plot']
+    for i in main_dirs:
+        os.makedirs(cur_dir + i)
+
 # imports script.py, used for creating plots
 import script
 
 # paths for race data
-CWD = os.getcwd()
-events = pd.read_csv(CWD + '/formula/data/events.csv')
-drivers = pd.read_csv(CWD + '/formula/data/drivers.csv')
-placeholder_path = CWD + '/formula/img/placeholder.png'
+events = pd.read_csv(CWD + '/data/events.csv')
+drivers = pd.read_csv(CWD + '/data/drivers.csv')
+placeholder_path = CWD + '/img/placeholder.png'
 
 # active race years
 year = events.columns
@@ -78,7 +85,7 @@ class MainWindow(QWidget):
         self.resize(880, 500)
         self.move(200, 100)
         self.setWindowTitle('Formula 1 Telemetry Analytics')
-        self.setWindowIcon(QtGui.QIcon(CWD + '/formula/img/f1.png'))
+        self.setWindowIcon(QtGui.QIcon(CWD + '/img/f1.png'))
 
     # creates and places all window compenenets, including listeners
     def UIComponents(self):
@@ -188,7 +195,7 @@ class MainWindow(QWidget):
             self.save_button.hide()
             self.pbar.show()
             script.get_race_data(input_data)
-            self.plot_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
+            self.plot_path = os.getcwd() + (f'/plot/{input_data[5]}.png')
             self.display_plot(self.plot_path)
             self.pbar.hide()
             self.run_button.setText('Run New Analysis')
