@@ -9,11 +9,10 @@ from fastf1 import utils
 from fastf1 import plotting
 from matplotlib.lines import Line2D
 from matplotlib import pyplot as plt
-#from matplotlib.pyplot import figure, ylabel
 from matplotlib.collections import LineCollection
 
 # enables cache, allows storage of race data locally
-ff1.Cache.enable_cache('/cache')
+ff1.Cache.enable_cache('formula/cache')
 
 # patches matplotlib for time delta support
 ff1.plotting.setup_mpl(mpl_timedelta_support = True, color_scheme = 'fastf1')
@@ -36,19 +35,18 @@ def get_race_data(input_data):
 
 # takes in speed/distance data for both drivers and determines which is faster
 # returns dataframe of which driver was the fastest in each sector
-def get_sectors(average_speed):
+def get_sectors(average_speed, input_data):
     sectors_combined = average_speed.groupby(['Driver', 'Minisector'])['Speed'].mean().reset_index()
     final = pd.DataFrame({
         'Driver': [],
         'Minisector': [],
         'Speed': []
     })
-    split_index = int(len(sectors_combined) / 2)
 
-    d1 = sectors_combined[:split_index]
-    d2 = sectors_combined[split_index:]
+    d1 = sectors_combined.loc[sectors_combined['Driver'] == input_data[3].split()[0]]
+    d2 = sectors_combined.loc[sectors_combined['Driver'] == input_data[4].split()[0]]
 
-    for i in range(0, len(d1)):
+    for i in range(0, len(d1)): #issue, sometimes length of d1 is not 25
         d1_sector = d1.iloc[[i]].values.tolist()
         d1_speed = d1_sector[0][2]
         d2_sector = d2.iloc[[i]].values.tolist()
@@ -79,11 +77,10 @@ def plot_laptime(race, input_data):
     ax.set_xlabel('Lap Number')
     ax.set_ylabel('Lap Time')
     ax.legend()
-    plt.suptitle(f"Lap Time Comparison \n" f"{race.event['EventName']} {race.event.year} {input_data[2]}")
+    plt.suptitle(f"Lap Time Comparison \n" f"{race.event.year} {race.event['EventName']} {input_data[2]}")
 
-    img_path = os.getcwd() + (f'/plot/{input_data[5]}.png')
+    img_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
     plt.savefig(img_path, dpi = 200)
-
 
 # speed comaprison by distance for the fastest lap of both drivers
 # returns a saved version of the generated plot
@@ -107,9 +104,9 @@ def plot_fastest_lap(race, input_data):
     ax.set_xlabel('Distance (m)')
     ax.set_ylabel('Speed (km/h)')
     ax.legend()
-    plt.suptitle(f"Fastest Lap Comparison \n" f"{race.event['EventName']} {race.event.year} {input_data[2]}")
+    plt.suptitle(f"Fastest Lap Comparison \n" f"{race.event.year} {race.event['EventName']} {input_data[2]}")
 
-    img_path = os.getcwd() + (f'/plot/{input_data[5]}.png')
+    img_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
     plt.savefig(img_path, dpi = 700)
 
 
@@ -137,13 +134,13 @@ def plot_fastest_sectors(race, input_data):
     telemetry = telemetry[['Lap', 'Distance', 'Driver', 'Speed', 'X', 'Y']]
 
     # creating minisectors
-    total_minisectors = 25 # two above desired 
+    total_minisectors = 25
     telemetry['Minisector'] = pd.cut(telemetry['Distance'], total_minisectors, labels = False) + 1
     
     average_speed = telemetry.groupby(['Lap', 'Minisector', 'Driver'])['Speed'].mean().reset_index()
     
     # calls function to returns fastest driver in each sector
-    best_sectors = get_sectors(average_speed)
+    best_sectors = get_sectors(average_speed, input_data)
     best_sectors = best_sectors[['Driver', 'Minisector']].rename(columns = {'Driver': 'fastest_driver'})
 
     # merges telemetry df with minisector df
@@ -155,7 +152,7 @@ def plot_fastest_sectors(race, input_data):
     
     # gets x,y data for a single lap. useful for drawing circuit.
     # x,y values can be inconsistent, causing strange behavior.
-    single_lap = telemetry.loc[telemetry['Lap'] == 1]
+    single_lap = telemetry.loc[telemetry['Lap'] == int(input_data[6])]
     lap_x = np.array(single_lap['X'].values)
     lap_y = np.array(single_lap['Y'].values)
 
@@ -174,12 +171,12 @@ def plot_fastest_sectors(race, input_data):
     colors = [color1, color2]
     cmap = matplotlib.colors.ListedColormap(colors)
 
-    lc_comp = LineCollection(segments, norm = plt.Normalize(1, cmap.N), cmap = cmap) #  norm = plt.Normalize(1, cdict.N+1)
+    lc_comp = LineCollection(segments, norm = plt.Normalize(1, cmap.N), cmap = cmap)
     lc_comp.set_array(which_driver)
     lc_comp.set_linewidth(2)
 
     plt.rcParams['figure.figsize'] = [6.25, 4.70]
-    plt.suptitle(f"Average Fastest Sectors \n" f"{race.event['EventName']} {race.event.year} {input_data[2]}") #edit
+    plt.suptitle(f"Average Fastest Sectors \n" f"{race.event.year} {race.event['EventName']} {input_data[2]}") #edit
     plt.gca().add_collection(lc_comp)
     plt.axis('equal')
     plt.tick_params(labelleft=False, left=False, labelbottom=False, bottom=False)
@@ -189,7 +186,7 @@ def plot_fastest_sectors(race, input_data):
 
     plt.legend(legend_lines, [input_data[3], input_data[4]])
 
-    img_path = os.getcwd() + (f'/plot/{input_data[5]}.png')
+    img_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
     plt.savefig(img_path, dpi = 200)
 
 # plots a speed, throttle, brake, rpm, gear, and drs comparison for both drivers
@@ -226,12 +223,12 @@ def plot_full_telemetry(race, input_data): # speed, throttle, brake, rpm, gear, 
     ax[4].set(ylabel = 'Gear')
     ax[5].set(ylabel = 'DRS')
 
-    plt.suptitle(f"Fastest Lap Telemetry - {input_data[3]} vs {input_data[4]} \n {race.event['EventName']} {race.event.year} {input_data[2]}")
+    plt.suptitle(f"Fastest Lap Telemetry - {input_data[3]} vs {input_data[4]} \n {race.event.year} {race.event['EventName']} {input_data[2]}")
 
     legend_lines = [Line2D([0], [0], color = colors[0], lw = 1),
         Line2D([0], [0], color = colors[1], lw = 1)]
 
     plt.legend(legend_lines, [input_data[3], input_data[4]])
 
-    img_path = os.getcwd() + (f'/plot/{input_data[5]}.png')
+    img_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
     plt.savefig(img_path, dpi = 200)

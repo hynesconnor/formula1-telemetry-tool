@@ -21,9 +21,9 @@ if not os.path.exists(CWD + '/cache'):
 import script
 
 # paths for race data
-events = pd.read_csv(CWD + '/data/events.csv')
-drivers = pd.read_csv(CWD + '/data/drivers.csv')
-placeholder_path = CWD + '/img/placeholder.png'
+events = pd.read_csv(CWD + '/formula/data/events.csv')
+drivers = pd.read_csv(CWD + '/formula/data/drivers.csv')
+placeholder_path = CWD + '/formula/img/placeholder.png'
 
 # active race years
 year = events.columns
@@ -31,7 +31,7 @@ year = year[1:len(year)].to_list()
 year.insert(0, 'Select Year')
 
 # values for dropdown lables
-driver_name = drivers # could remove
+driver_name = drivers
 location = ['Select Location']
 session = ['FP1','FP2', 'FP3', 'Qualifying', 'Race'] # 'Sprint Qualifying', 'Sprint' : removed until data is consistent
 driver_name = ['Select Driver']
@@ -82,10 +82,10 @@ class MainWindow(QWidget):
 
     # initialize main window
     def initUI(self):
-        self.resize(880, 500)
+        self.setFixedSize(880, 525)
         self.move(200, 100)
         self.setWindowTitle('Formula 1 Telemetry Analytics')
-        self.setWindowIcon(QtGui.QIcon(CWD + '/img/f1.png'))
+        self.setWindowIcon(QtGui.QIcon(CWD + '/formula/img/f1.png'))
 
     # creates and places all window compenenets, including listeners
     def UIComponents(self):
@@ -99,7 +99,9 @@ class MainWindow(QWidget):
         self.drop_driver1 = QComboBox()
         self.drop_driver2 = QComboBox()
         self.drop_analysis = QComboBox()
+        self.lap_number = QComboBox()
 
+        # not working properly
         self.warning_box = QMessageBox(self)
         self.warning_box.setWindowTitle('Error!')
         self.warning_box.setText('Select a valid race year.')
@@ -137,6 +139,10 @@ class MainWindow(QWidget):
         options_layout.addWidget(self.drop_driver2)
         options_layout.addWidget(label_analysis)
         options_layout.addWidget(self.drop_analysis)
+
+        options_layout.addWidget(self.lap_number)
+        self.lap_number.hide()
+
         options_layout.addWidget(self.pbar)
         self.pbar.hide()
         options_layout.addWidget(self.run_button)
@@ -147,6 +153,7 @@ class MainWindow(QWidget):
         self.drop_year.currentTextChanged.connect(self.update_lists) # listens for change in year
         self.run_button.clicked.connect(self.thread_script) # listens for run analysis button press
         self.save_button.clicked.connect(self.save_plot) # listens for save button press
+        self.drop_analysis.currentTextChanged.connect(self.add_laps) # listens to add lap selection
 
         self.img_plot = QLabel()
         self.img_plot.setPixmap(QPixmap(placeholder_path).scaledToWidth(625)) # could increase scale to improve readability of high dpi images
@@ -169,6 +176,8 @@ class MainWindow(QWidget):
         input_data.append(text)
         text = self.drop_analysis.currentText()
         input_data.append(text)
+        text = self.lap_number.currentText()
+        input_data.append(text)
         return input_data
 
     # displays requested analysis plot, returned from script.py
@@ -179,6 +188,18 @@ class MainWindow(QWidget):
     def save_plot(self):
         desktop_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop') # may need to adjust for mac
         shutil.copy(self.plot_path, desktop_path)
+
+    # adds option to select the lap number for sector analysis
+    def add_laps(self):
+        laps = ['Select Lap']
+        laps.extend(range(1, 72))
+        laps = map(str, laps)
+        if self.drop_analysis.currentText() == 'Fastest Sectors':
+            self.lap_number.clear()
+            self.lap_number.addItems(laps)
+            self.lap_number.show()
+        else:
+            self.lap_number.hide()
 
     # starts new thread for script.py operation so gui.py does not freeze
     def thread_script(self):
@@ -195,7 +216,7 @@ class MainWindow(QWidget):
             self.save_button.hide()
             self.pbar.show()
             script.get_race_data(input_data)
-            self.plot_path = os.getcwd() + (f'/plot/{input_data[5]}.png')
+            self.plot_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
             self.display_plot(self.plot_path)
             self.pbar.hide()
             self.run_button.setText('Run New Analysis')
