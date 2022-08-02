@@ -48,3 +48,5 @@ At the end of each race, Formula 1 releases race data which FastF1 has been buil
 - There is currently an error with the DRS plot on the full telemetry analysis. Working on a fix for this. DRS data is supposed to be a binary but sometimes values are reported as fractional. 
 
 - To make plots more readable, consider downloading to the desktop to view them at a higher DPI. Currently, the plots displayed in app suffer visually do to downscaling. Working on a fix.
+
+- Currently, for fastest sectors analysis, the selection for lap number is not updated for each race. Right now you can select values between 1 and 72. A future update will address the, displaying the correct number of laps for each race, but for now be sure to select a valid lap number for analysis.
