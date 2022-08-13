@@ -176,7 +176,7 @@ def plot_fastest_sectors(race, input_data):
     lc_comp.set_linewidth(2)
 
     plt.rcParams['figure.figsize'] = [6.25, 4.70]
-    plt.suptitle(f"Average Fastest Sectors \n" f"{race.event.year} {race.event['EventName']} {input_data[2]}") #edit
+    plt.suptitle(f"Average Fastest Sectors Lap {input_data[6]}\n" f"{race.event.year} {race.event['EventName']} {input_data[2]}") #edit
     plt.gca().add_collection(lc_comp)
     plt.axis('equal')
     plt.tick_params(labelleft=False, left=False, labelbottom=False, bottom=False)
@@ -204,31 +204,34 @@ def plot_full_telemetry(race, input_data): # speed, throttle, brake, rpm, gear, 
     tel_d2 = fastest_d2.get_car_data().add_distance()
     tel_d2['Brake'] = tel_d2['Brake'].astype(int)
 
+    delta_time, ref_tel, compare_tel = utils.delta_time(fastest_d1, fastest_d2)
+
     telem_data_combined = [tel_d1, tel_d2]
     colors = [ff1.plotting.driver_color(input_data[3]), ff1.plotting.driver_color(input_data[4])]
 
     fig, ax = plt.subplots(6)
     for telem, color in zip(telem_data_combined, colors):
-        ax[0].plot(telem['Distance'], telem['Speed'], color = color, linewidth = .75)
-        ax[1].plot(telem['Distance'], telem['Throttle'], color = color, linewidth = .75)
-        ax[2].plot(telem['Distance'], telem['Brake'], color = color, linewidth = .75) # might have to convert to binary 
-        ax[3].plot(telem['Distance'], telem['RPM'], color = color, linewidth = .75)
-        ax[4].plot(telem['Distance'], telem['nGear'], color = color, linewidth = .75)
-        ax[5].plot(telem['Distance'], telem['DRS'], color = color, linewidth = .75)
+        ax[0].axhline(0, color = 'White', linewidth = .50)
+        ax[0].plot(ref_tel['Distance'], delta_time, color = color, linewidth = .75)
+        ax[1].plot(telem['Distance'], telem['Speed'], color = color, linewidth = .75)
+        ax[2].plot(telem['Distance'], telem['Throttle'], color = color, linewidth = .75)
+        ax[3].plot(telem['Distance'], telem['Brake'], color = color, linewidth = .75) # might have to convert to binary 
+        ax[4].plot(telem['Distance'], telem['RPM'], color = color, linewidth = .75)
+        ax[5].plot(telem['Distance'], telem['nGear'], color = color, linewidth = .75)
 
-    ax[0].set(ylabel = 'Speed')
-    ax[1].set(ylabel = 'Throttle')
-    ax[2].set(ylabel = 'Brake')
-    ax[3].set(ylabel = 'RPM')
-    ax[4].set(ylabel = 'Gear')
-    ax[5].set(ylabel = 'DRS')
+    ax[0].set(ylabel = 'Delta (s)')
+    ax[1].set(ylabel = 'Speed')
+    ax[2].set(ylabel = 'Throttle')
+    ax[3].set(ylabel = 'Brake')
+    ax[4].set(ylabel = 'RPM')
+    ax[5].set(ylabel = 'Gear')
 
     plt.suptitle(f"Fastest Lap Telemetry - {input_data[3]} vs {input_data[4]} \n {race.event.year} {race.event['EventName']} {input_data[2]}")
 
     legend_lines = [Line2D([0], [0], color = colors[0], lw = 1),
         Line2D([0], [0], color = colors[1], lw = 1)]
 
-    plt.legend(legend_lines, [input_data[3], input_data[4]])
+    ax[0].legend(legend_lines, [input_data[3], input_data[4]], loc = 'lower right', prop={'size': 5})
 
     img_path = os.getcwd() + (f'/formula/plot/{input_data[5]}.png')
     plt.savefig(img_path, dpi = 200)

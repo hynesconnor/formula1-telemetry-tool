@@ -23,6 +23,7 @@ import script
 # paths for race data
 events = pd.read_csv(CWD + '/formula/data/events.csv')
 drivers = pd.read_csv(CWD + '/formula/data/drivers.csv')
+race_laps = pd.read_csv(CWD + '/formula/data/laps.csv')
 placeholder_path = CWD + '/formula/img/placeholder.png'
 
 # active race years
@@ -33,7 +34,7 @@ year.insert(0, 'Select Year')
 # values for dropdown lables
 driver_name = drivers
 location = ['Select Location']
-session = ['FP1','FP2', 'FP3', 'Qualifying', 'Race'] # 'Sprint Qualifying', 'Sprint' : removed until data is consistent
+session = ['Race', 'Qualifying', 'FP1', 'FP2', 'FP3']# 'Sprint Qualifying', 'Sprint' : removed until data is consistent
 driver_name = ['Select Driver']
 analysis_type = ['Lap Time', 'Fastest Lap', 'Fastest Sectors', 'Full Telemetry']
 
@@ -55,7 +56,7 @@ StyleSheet = '''
 }
 '''
 
-# defines progressbar object
+# defines progressbar
 class ProgressBar(QProgressBar):
     def __init__(self, *args, **kwargs):
         super(ProgressBar, self).__init__(*args, **kwargs)
@@ -139,21 +140,21 @@ class MainWindow(QWidget):
         options_layout.addWidget(self.drop_driver2)
         options_layout.addWidget(label_analysis)
         options_layout.addWidget(self.drop_analysis)
-
         options_layout.addWidget(self.lap_number)
         self.lap_number.hide()
-
         options_layout.addWidget(self.pbar)
         self.pbar.hide()
         options_layout.addWidget(self.run_button)
         options_layout.addWidget(self.save_button)
         self.save_button.hide()
+        
         options_layout.addStretch() # compacts all widgets
 
         self.drop_year.currentTextChanged.connect(self.update_lists) # listens for change in year
         self.run_button.clicked.connect(self.thread_script) # listens for run analysis button press
         self.save_button.clicked.connect(self.save_plot) # listens for save button press
         self.drop_analysis.currentTextChanged.connect(self.add_laps) # listens to add lap selection
+        self.drop_grand_prix.currentTextChanged.connect(self.update_laps) # updates lap number based on grand prix selection
 
         self.img_plot = QLabel()
         self.img_plot.setPixmap(QPixmap(placeholder_path).scaledToWidth(625)) # could increase scale to improve readability of high dpi images
@@ -191,15 +192,21 @@ class MainWindow(QWidget):
 
     # adds option to select the lap number for sector analysis
     def add_laps(self):
-        laps = ['Select Lap']
-        laps.extend(range(1, 72))
-        laps = map(str, laps)
         if self.drop_analysis.currentText() == 'Fastest Sectors':
-            self.lap_number.clear()
-            self.lap_number.addItems(laps)
             self.lap_number.show()
         else:
             self.lap_number.hide()
+
+    # updates total number of laps depending on grand prix selection
+    def update_laps(self):
+        if self.drop_grand_prix.currentText() != '':
+            self.lap_number.clear()
+            lap_val = ['Select Lap']
+            race = self.drop_grand_prix.currentText()
+            total_laps = race_laps.loc[race_laps.event == race, 'laps'].values[0]
+            lap_val.extend(range(1, total_laps + 1))
+            lap_val = map(str, lap_val)
+            self.lap_number.addItems(lap_val)
 
     # starts new thread for script.py operation so gui.py does not freeze
     def thread_script(self):
