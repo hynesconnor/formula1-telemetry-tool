@@ -3,7 +3,7 @@ A fast, GUI based application, to gain insights into Formula 1 telemetry data.
 
 Query every race and each driver for the 2018-2022 racing seasons. Built leveraging theOehrly's [FastF1](https://github.com/theOehrly/Fast-F1) python package for race data and [PyQt5](https://pypi.org/project/PyQt5/) for the GUI. Currently tested on Windows based operating systems.
 
-![](/mkdwn/main_screen.png)
+![](/mkdwn/demo.gif)
 
 The goal of this project is to provide a simple way to gather driver data for each race. Formula 1 only provides some data for each race such as basic performance metrics, tire history, and lap charts. This is not detailed enough and requires the use of an account.
 
