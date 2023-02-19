@@ -41,7 +41,7 @@ At the end of each race, Formula 1 releases race data which FastF1 has been buil
 
 ## Limitations and Issues
 
-- F1 car data is not always complete. These means that depending on the session/track/driver, data will sometimes be missing or incorrect. This could be caused by a number of things like sensor failure, crashes, irregular driving, etc. It tends to be clear where data is incorrect as graphs will generate with sharp lines or missing sections. I've found these issues to be more plentiful with Free Practice sessions. Race sessions tend to have more complete data. 
+- F1 car data is not always complete. This means that depending on the session/track/driver, data will sometimes be missing or incorrect. This could be caused by a number of things like sensor failure, crashes, irregular driving, etc. It tends to be clear where data is incorrect as graphs will generate with sharp lines or missing sections. I've found these issues to be more plentiful with Free Practice sessions. Race sessions tend to have more complete data. 
 
 - When generating average fastest sectors do keep in mind that incorrect plot generation, especially on lap 1 where driving tends to be more erratic, can occur. The plot is drawn using X and Y values coming directly from sensors on the car. This means that if a driver was to go off track, an area will be drawn that is not part of the race track. The same can be seen on lap 1 in the starting area, which is not drawn.
 
