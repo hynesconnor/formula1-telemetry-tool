@@ -1,5 +1,7 @@
 # Formula 1 Telemetry Analysis Tool
-A fast, GUI based application, to gain insights into Formula 1 telemetry data.
+A fast, GUI based application, to gain insights into Formula 1 telemetry data. 
+
+**Hamilton to Ferrari!!**
 
 Query every race and each driver for the 2018-2023 racing seasons. Built leveraging theOehrly's [FastF1](https://github.com/theOehrly/Fast-F1) python package for race data and [PyQt5](https://pypi.org/project/PyQt5/) for the GUI. Currently tested on Windows based operating systems.
 
