@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import QComboBox, QApplication, QWidget, QVBoxLayout, QHBox
 # create directories
 CWD = os.getcwd()
 if not os.path.exists(CWD + '/cache'):
-    cur_dir = CWD + '/'
+    cur_dir = CWD + '/formula/'
     main_dirs = ['cache', 'plot']
     for i in main_dirs:
         os.makedirs(cur_dir + i)
