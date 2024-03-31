@@ -12,7 +12,7 @@ The goal of this project is to provide a simple way to gather driver data for ea
 At the end of each race, Formula 1 releases race data which FastF1 has been built to access. Having direct access to these statistics allows fully customizable methods of analyzing and comparing driver performance. Building this application with a GUI also makes it much faster to generate statistics, especially when you want to quickly switch drivers, races, and analysis types, avoiding the need to constantly edit scripts.
 
 ## Installation and Configuration
-- Download the latest release [here](https://github.com/hynesconnor/formula1_telemetry_tool/releases).
+- Download the latest release [here](https://github.com/satido/formula1-telemetry-tool/releases).
 - Using cmd and pip, navigate to the repository directory and run the following command to install necessary packages: `pip install -r requirements.txt`
 - Run `gui.py` to start the program.
 - The proper file directory will be created, and the GUI pictured above will open. You can begin running analyses.
